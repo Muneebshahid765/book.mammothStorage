@@ -1,0 +1,205 @@
+/* ========================================
+   CORS FIX - Override External Resources
+   ======================================== */
+
+/* Replace all Proxima Nova font references with Montserrat (loaded from Google Fonts) */
+/* CRITICAL: Do NOT override icon fonts */
+body, html, 
+.fusion-body,
+.awb-menu,
+.fusion-menu,
+.fusion-header,
+.fusion-main-menu,
+h1, h2, h3, h4, h5, h6,
+p, 
+span:not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.bi):not(.fontawesome-icon),
+div, a, button, input, select, textarea,
+.nav-link,
+.dropdown-item,
+.btn {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* ========================================
+   ICON FONT PRESERVATION
+   ======================================== */
+
+/* Force Font Awesome icons to use correct font */
+.fa, .fas, .far, .fal, .fab,
+[class*="fa-"],
+i[class*="fa-"],
+.fontawesome-icon,
+span[class*="fa-"] {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    display: inline-block !important;
+}
+
+.far { font-weight: 400 !important; }
+.fal { font-weight: 300 !important; }
+.fab { 
+    font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands" !important;
+    font-weight: 400 !important;
+}
+
+/* Force Bootstrap Icons to use correct font */
+.bi, [class*="bi-"], i[class*="bi-"] {
+    font-family: "bootstrap-icons" !important;
+    font-style: normal !important;
+    display: inline-block !important;
+}
+
+/* Font weight mappings */
+.font-regular, 
+[class*="Regular"],
+[class*="regular"] {
+    font-weight: 400 !important;
+}
+
+.font-semibold,
+.font-semi-bold,
+[class*="Semibold"],
+[class*="semibold"],
+[class*="Semi-Bold"],
+[class*="semi-bold"] {
+    font-weight: 600 !important;
+}
+
+.font-bold,
+[class*="Bold"],
+[class*="bold"],
+strong, b {
+    font-weight: 700 !important;
+}
+
+/* ========================================
+   CURSOR FIXES - Replace External Cursors
+   ======================================== */
+
+/* Override iLightbox closedhand cursor */
+.ilightbox-closedhand,
+.ilightbox-closedhand *,
+[class*="closedhand"] {
+    cursor: grabbing !important;
+}
+
+/* Override iLightbox openhand cursor */
+.ilightbox-openhand,
+.ilightbox-openhand *,
+[class*="openhand"] {
+    cursor: grab !important;
+}
+
+/* Prevent loading any external cursor files */
+*[style*="cursor: url"] {
+    cursor: default !important;
+}
+
+/* Fix iLightbox cursor issues */
+.ilightbox-holder,
+.ilightbox-holder *,
+.ilightbox-overlay,
+.ilightbox-container,
+.ilightbox-wrapper {
+    cursor: default !important;
+}
+
+.ilightbox-holder .ilightbox-inner-toolbar a,
+.ilightbox-holder button,
+.ilightbox-holder [role="button"] {
+    cursor: pointer !important;
+}
+
+/* Standard cursor behaviors */
+a, button, [role="button"], .clickable {
+    cursor: pointer !important;
+}
+
+input, textarea, select {
+    cursor: text !important;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    cursor: pointer !important;
+}
+
+/* ========================================
+   FONT-FACE OVERRIDES
+   ======================================== */
+
+/* Redirect all Proxima Nova font-face declarations to use Montserrat */
+@font-face {
+    font-family: 'Proxima Nova';
+    src: local('Montserrat');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Proxima Nova - Regular';
+    src: local('Montserrat');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Proxima Nova - Semi Bold';
+    src: local('Montserrat');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Proxima Nova Bold';
+    src: local('Montserrat');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ProximaNova';
+    src: local('Montserrat');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ProximaNova-Regular';
+    src: local('Montserrat');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ProximaNova-Semibold';
+    src: local('Montserrat');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ProximaNova-Bold';
+    src: local('Montserrat');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* ========================================
+   ADDITIONAL CORS PREVENTION
+   ======================================== */
+
+/* Prevent any background images from external domains */
+[style*="background-image: url('https://mammothselfstore.com.au"]  {
+    background-image: none !important;
+}
+
+/* Ensure all resources load from current domain */
+img[src^="https://mammothselfstore.com.au"] {
+    display: none !important;
+}
