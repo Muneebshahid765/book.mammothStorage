@@ -439,6 +439,7 @@ function initMultiStepForm() {
         valid &= validateField('country');
         valid &= validateField('city');
         valid &= validateField('state');
+        valid &= validateField('address1');
         valid &= validateField('email', 'email');
         valid &= validateField('phone');
         return Boolean(valid);

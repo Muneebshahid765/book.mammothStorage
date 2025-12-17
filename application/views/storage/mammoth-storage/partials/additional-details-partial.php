@@ -187,99 +187,107 @@
 </style>
 
 <div class="container">
-    <div class="form-card">
-        <a href="javascript:void(0);" class="back-button" onclick="loadStep('personal-info')">
-            <i class="fas fa-chevron-left"></i> Back
-        </a>
-        
-        <h2>Additional Details</h2>
-        <p class="subtitle">Provide identification and access credentials to verify your identity.</p>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <a href="javascript:void(0);" class="back-button" onclick="loadStep('personal-info')">
+                    <i class="fas fa-chevron-left"></i> Back
+                </a>
+                
+                <h2>Additional Details</h2>
+                <p class="subtitle">Provide identification and access credentials to verify your identity.</p>
 
-        <form id="additionalDetailsForm" novalidate>
-            <div class="mb-3">
-                <label for="dob" class="form-label">Date of Birth<span class="required">*</span></label>
-                <input type="date" class="form-control" id="dob" name="dob" required>
-                <div class="invalid-feedback">Date of Birth is required.</div>
-                <div class="valid-feedback">Looks good!</div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="licenseState" class="form-label">License State<span class="required">*</span></label>
-                    <select class="form-select" id="licenseState" name="licenseState" required>
-                        <option value="">Select License State</option>
-                        <option value="NSW">New South Wales (NSW)</option>
-                        <option value="VIC">Victoria (VIC)</option>
-                        <option value="QLD">Queensland (QLD)</option>
-                        <option value="WA">Western Australia (WA)</option>
-                        <option value="SA">South Australia (SA)</option>
-                        <option value="TAS">Tasmania (TAS)</option>
-                        <option value="ACT">Australian Capital Territory (ACT)</option>
-                        <option value="NT">Northern Territory (NT)</option>
-                    </select>
-                    <div class="invalid-feedback">License State is required.</div>
-                    <div class="valid-feedback">Looks good!</div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="licenseNumber" class="form-label">License Number<span class="required">*</span></label>
-                    <input type="text" class="form-control" id="licenseNumber" name="licenseNumber" placeholder="Enter License Number" required>
-                    <div class="invalid-feedback">License Number is required.</div>
-                    <div class="valid-feedback">Looks good!</div>
-                </div>
-            </div>
-
-            <div class="section-title">Alternative Contact (Optional)</div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="altFirstName" class="form-label">Alternative First Name</label>
-                    <input type="text" class="form-control" id="altFirstName" name="altFirstName" placeholder="Alternative First Name">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="altLastName" class="form-label">Alternative Last Name</label>
-                    <input type="text" class="form-control" id="altLastName" name="altLastName" placeholder="Alternative Last Name">
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="altPhone" class="form-label">Alternative Phone</label>
-                <input type="tel" class="form-control" id="altPhone" name="altPhone" placeholder="Alternative Phone">
-                <div class="invalid-feedback">Alternative contact number must be different from the primary phone number.</div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="startDate" class="form-label">Start Date<span class="required">*</span></label>
-                    <input type="date" class="form-control" id="startDate" name="startDate" required>
-                    <div class="invalid-feedback">Start date is required.</div>
-                    <div class="valid-feedback">Looks good!</div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="webPassword" class="form-label">Web Password<span class="required">*</span></label>
-                    <div class="position-relative">
-                        <input type="password" class="form-control" id="webPassword" name="webPassword" placeholder="Create a password" required>
-                        <button type="button" class="toggle-password" data-target="#webPassword" tabindex="-1">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                <form id="additionalDetailsForm" novalidate>
+                    <div class="mb-3">
+                        <label for="dob" class="form-label">Date of Birth<span class="required">*</span></label>
+                        <input type="date" class="form-control" id="dob" name="dob" required>
+                        <div class="invalid-feedback">Date of Birth is required.</div>
+                        <div class="valid-feedback">Looks good!</div>
                     </div>
-                    <div class="password-requirements" id="passwordRequirements">
-                        Password must contain:
-                        <ul>
-                            <li id="req-length" class="unmet">At least 8 characters</li>
-                            <li id="req-uppercase" class="unmet">At least one uppercase letter (A-Z)</li>
-                            <li id="req-number" class="unmet">At least one number (0-9)</li>
-                            <li id="req-special" class="unmet">At least one special character (!@#$%^&*)</li>
-                        </ul>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="licenseState" class="form-label">License State<span class="required">*</span></label>
+                            <select class="form-select" id="licenseState" name="licenseState" required>
+                                <option value="">Select License State</option>
+                                <option value="NSW">New South Wales (NSW)</option>
+                                <option value="VIC">Victoria (VIC)</option>
+                                <option value="QLD">Queensland (QLD)</option>
+                                <option value="WA">Western Australia (WA)</option>
+                                <option value="SA">South Australia (SA)</option>
+                                <option value="TAS">Tasmania (TAS)</option>
+                                <option value="ACT">Australian Capital Territory (ACT)</option>
+                                <option value="NT">Northern Territory (NT)</option>
+                            </select>
+                            <div class="invalid-feedback">License State is required.</div>
+                            <div class="valid-feedback">Looks good!</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="licenseNumber" class="form-label">License Number<span class="required">*</span></label>
+                            <input type="text" class="form-control" id="licenseNumber" name="licenseNumber" placeholder="Enter License Number" required>
+                            <div class="invalid-feedback">License Number is required.</div>
+                            <div class="valid-feedback">Looks good!</div>
+                        </div>
                     </div>
-                    <div class="invalid-feedback">Please meet all password requirements.</div>
-                    <div class="valid-feedback">Strong password!</div>
-                </div>
+
+                    <div class="section-title">Alternative Contact (Optional)</div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="altFirstName" class="form-label">Alternative First Name</label>
+                            <input type="text" class="form-control" id="altFirstName" name="altFirstName" placeholder="Alternative First Name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="altLastName" class="form-label">Alternative Last Name</label>
+                            <input type="text" class="form-control" id="altLastName" name="altLastName" placeholder="Alternative Last Name">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="altPhone" class="form-label">Alternative Phone</label>
+                        <input type="tel" class="form-control" id="altPhone" name="altPhone" placeholder="Alternative Phone">
+                        <div class="invalid-feedback">Alternative contact number must be different from the primary phone number.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="startDate" class="form-label">Start Date<span class="required">*</span></label>
+                            <input type="date" class="form-control" id="startDate" name="startDate" required>
+                            <div class="invalid-feedback">Start date is required.</div>
+                            <div class="valid-feedback">Looks good!</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="webPassword" class="form-label">Web Password<span class="required">*</span></label>
+                            <div class="position-relative">
+                                <input type="password" class="form-control" id="webPassword" name="webPassword" placeholder="Create a password" maxlength="20" required>
+
+                                <button type="button" class="toggle-password" data-target="#webPassword" tabindex="-1">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-requirements" id="passwordRequirements">
+                                Password must contain:
+                                <ul>
+                                    <li id="req-length" class="unmet">At least 8 characters</li>
+                                    <li id="req-uppercase" class="unmet">At least one uppercase letter (A-Z)</li>
+                                    <li id="req-number" class="unmet">At least one number (0-9)</li>
+                                    <li id="req-special" class="unmet">At least one special character (!@#$%^&*)</li>
+                                </ul>
+                            </div>
+                            <div class="invalid-feedback">Please meet all password requirements.</div>
+                            <div class="valid-feedback">Strong password!</div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="endDate" name="endDate">
+
+                    <button type="submit" class="btn-continue" id="submitBtn" disabled>Continue to Insurance & Terms</button>
+                </form>
             </div>
-
-            <input type="hidden" id="endDate" name="endDate">
-
-            <button type="submit" class="btn-continue" id="submitBtn" disabled>Continue to Insurance & Terms</button>
-        </form>
+        </div>
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <?php include(APPPATH . 'views/storage/mammoth-storage/partials/checkout-summary-partial.php'); ?>
+        </div>
     </div>
 </div>
 
@@ -522,6 +530,17 @@ $(document).ready(function() {
 
         sessionStorage.setItem('additionalDetails', JSON.stringify(formData));
 
+        try {
+            var leadId = sessionStorage.getItem('bookingLeadId');
+            if (leadId) {
+                $.post('<?php echo base_url('MammothStorageController/update_lead_step'); ?>', {
+                    lead_id: leadId,
+                    step: 3
+                });
+            }
+        } catch (e) {
+        }
+
         Swal.fire({
             icon: 'success',
             title: 'Details Saved!',
@@ -565,13 +584,20 @@ $(document).ready(function() {
         }
     }
 
-    // Enforce minimum start date based on location lead time
-    (function enforceStartDateMinimum() {
+    // Updates the start date input with current min/max constraints
+    function refreshStartDateLimits() {
+        const $start = $('#startDate');
+        if (!$start.length) {
+            return;
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        // Use currentLeadTimeDays from parent window (set when location is selected)
+
         let leadTimeDays = 1;
+        let maxAdvanceDays = null;
+
+        // Read limits from parent context (main booking page)
         try {
             if (window.parent && typeof window.parent.currentLeadTimeDays !== 'undefined') {
                 const rawLead = window.parent.currentLeadTimeDays;
@@ -583,27 +609,72 @@ $(document).ready(function() {
         } catch (e) {
             leadTimeDays = 1;
         }
-        
+
+        try {
+            if (window.parent && typeof window.parent.currentMaxAdvanceDays !== 'undefined') {
+                const rawMax = window.parent.currentMaxAdvanceDays;
+                if (rawMax !== null && rawMax !== undefined) {
+                    const parsedMax = parseInt(rawMax, 10);
+                    if (!isNaN(parsedMax) && parsedMax >= 0) {
+                        maxAdvanceDays = parsedMax;
+                    }
+                }
+            }
+        } catch (e) {
+            maxAdvanceDays = null;
+        }
+
+        // Calculate min date (relative to today) and clamp to avoid invalid Date
         const minDate = new Date(today);
         minDate.setDate(minDate.getDate() + leadTimeDays);
 
-        const year = minDate.getFullYear();
-        const month = String(minDate.getMonth() + 1).padStart(2, '0');
-        const day = String(minDate.getDate()).padStart(2, '0');
-        const minStart = `${year}-${month}-${day}`;
+        const minStart = [
+            minDate.getFullYear(),
+            String(minDate.getMonth() + 1).padStart(2, '0'),
+            String(minDate.getDate()).padStart(2, '0')
+        ].join('-');
 
-        const $start = $('#startDate');
         $start.attr('min', minStart);
 
-        // Always default the visible start date to the earliest
-        // allowed date for the current location lead time.
-        $start.val(minStart);
+        // Apply max limit relative to min date so customers can only pick dates within the allowed window
+        if (maxAdvanceDays !== null) {
+            const maxDate = new Date(minDate);
+            maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
 
-        const calculatedEndDate = calculateEndDateFromStart(minStart);
+            const maxStart = [
+                maxDate.getFullYear(),
+                String(maxDate.getMonth() + 1).padStart(2, '0'),
+                String(maxDate.getDate()).padStart(2, '0')
+            ].join('-');
+
+            $start.attr('max', maxStart);
+            console.log('Max start date set to:', maxStart, '(max days:', maxAdvanceDays, 'from min date:', minStart, ')');
+        } else {
+            $start.removeAttr('max');
+        }
+
+        // If previously selected date falls outside new limits, clamp it
+        let currentValue = $start.val();
+        if (!currentValue || currentValue < minStart) {
+            currentValue = minStart;
+        } else if ($start.attr('max') && currentValue > $start.attr('max')) {
+            currentValue = $start.attr('max');
+        }
+
+        $start.val(currentValue);
+
+        const calculatedEndDate = calculateEndDateFromStart(currentValue);
         if (calculatedEndDate) {
             $('#endDate').val(calculatedEndDate);
         }
-    })();
+    }
+
+    // Expose to parent so other steps can force-refresh when lead-time/max advance updates
+    if (typeof window.refreshStartDateLimits !== 'function') {
+        window.refreshStartDateLimits = refreshStartDateLimits;
+    }
+
+    refreshStartDateLimits();
     
     // Initial button state check
     updateSubmitButton();

@@ -244,6 +244,7 @@
 
 <body>
 
+    <div id="mobile-menu-overlay"></div>
 
     <div class="fusion-tb-header">
         <div class="fusion-fullwidth fullwidth-box fusion-builder-row-1 fusion-flex-container has-pattern-background has-mask-background custom-new-header-top nonhundred-percent-fullwidth non-hundred-percent-height-scrolling" style="--awb-border-radius-top-left:0px;--awb-border-radius-top-right:0px;--awb-border-radius-bottom-right:0px;--awb-border-radius-bottom-left:0px;--awb-padding-right-medium:16px;--awb-padding-left-medium:16px;--awb-padding-top-small:16px;--awb-padding-bottom-small:16px;--awb-background-color:#000000;--awb-flex-wrap:wrap;">
@@ -319,3 +320,19 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toggle = document.querySelector('.fusion-tb-header .awb-menu__m-toggle');
+            var menu = document.getElementById('menu-new-main-menu');
+
+            if (!toggle || !menu) {
+                return;
+            }
+
+            toggle.addEventListener('click', function () {
+                var isOpen = menu.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        });
+    </script>

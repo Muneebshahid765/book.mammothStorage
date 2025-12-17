@@ -28,21 +28,41 @@ class UnitDescriptionController extends CI_Controller
                 ]));
         }
 
+        // Debug log
+        log_message('debug', '[UnitDescriptionController] Received size_key: ' . $size_key);
+        
         $description = $this->AdminUnitsModel->getDescriptionBySize($size_key);
+        
+        // Debug log
+        log_message('debug', '[UnitDescriptionController] Description found: ' . ($description ? 'YES' : 'NO'));
+        if ($description) {
+            log_message('debug', '[UnitDescriptionController] Filters: ' . json_encode($description['filters'] ?? []));
+        }
+
+        $buildingLabel = $description['building_label'] ?? '';
+        $floorLabel = $description['floor_label'] ?? '';
 
         if ($description) {
             $data = [
-                'size_key'    => $size_key,
-                'description' => $description['description'],
-                'filters'     => array_map(function ($f) {
-                    return $f['name'];
+                'size_key'       => $size_key,
+                'description'    => $description['description'],
+                'building_label' => $buildingLabel,
+                'floor_label'    => $floorLabel,
+                'filters'        => array_map(function ($f) {
+                    // Return the full filter object with both name and slug
+                    return [
+                        'name' => $f['name'],
+                        'slug' => $f['slug']
+                    ];
                 }, $description['filters'] ?? []),
             ];
         } else {
             $data = [
-                'size_key'    => $size_key,
-                'description' => '',
-                'filters'     => [],
+                'size_key'       => $size_key,
+                'description'    => '',
+                'building_label' => '',
+                'floor_label'    => '',
+                'filters'        => [],
             ];
         }
 

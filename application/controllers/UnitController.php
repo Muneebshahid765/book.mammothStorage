@@ -13,7 +13,7 @@ class UnitController extends CI_Controller
     public function fetchInsuranceCoverage($locationCode)
     {
 
-        // 🔥 Call insurance coverage API
+        // ðŸ”¥ Call insurance coverage API
         $insuranceCurl = curl_init();
         curl_setopt_array($insuranceCurl, array(
             CURLOPT_URL => 'https://checkout.mammothstorage.com.au/api/v1/insurance_coverage/getAll',
@@ -36,6 +36,8 @@ class UnitController extends CI_Controller
     // Function to handle the API request
     public function fetchUnits()
     {
+        $this->load->database();
+
         // Parse the JSON input from the request body
         $inputData = json_decode(file_get_contents('php://input'), true);
 
@@ -45,7 +47,24 @@ class UnitController extends CI_Controller
             return;
         }
 
-        $locationCode = htmlspecialchars($inputData['locationCode']); // Sanitize input
+        $locationCode = trim(htmlspecialchars($inputData['locationCode'])); // Sanitize input
+
+        // Block disabled locations (backward compatible if column doesn't exist)
+        $hasEnabled = $this->db->field_exists('is_enabled', 'tbl_locations');
+        if ($hasEnabled) {
+            $query = $this->db
+                ->select('is_enabled')
+                ->from('tbl_locations')
+                ->where('code', $locationCode)
+                ->limit(1)
+                ->get();
+
+            $row = $query ? $query->row_array() : null;
+            if (!$row || (int) $row['is_enabled'] !== 1) {
+                echo json_encode(['error' => true, 'message' => 'This location is currently unavailable.']);
+                return;
+            }
+        }
 
         // Prepare the SOAP request XML with the provided locationCode
         $soapRequest = <<<XML
@@ -185,8 +204,8 @@ class UnitController extends CI_Controller
         }
 
         // Extract units information from the SOAP response
-        //$result = $xml->xpath('//diffgr:diffgram/NewDataSet/Table');
-        $result = $xml->xpath('//diffgr:diffgram/NewDataSet/Table[bRented="false" and bRentable="true"]');
+        // Filter: bRentable="true" AND bRented="false" to only show available units
+        $result = $xml->xpath('//diffgr:diffgram/NewDataSet/Table[bRentable="true" and bRented="false"]');
         $units = [];
 
         // Loop through the units and extract relevant information
@@ -497,12 +516,44 @@ class UnitController extends CI_Controller
         $query = $this->db->get();
         $unitTypes = $query->result_array();
 
-        // Create a map of type names to IDs for quick lookup
-        $typeNameToId = [];
+        $slugify = function ($value) {
+            $value = strtolower(trim((string) $value));
+            $value = preg_replace('/[^a-z0-9]+/', '-', $value);
+            return trim($value, '-');
+        };
+
+        // Create a map of type keys to ALL matching IDs for quick lookup (handles duplicates)
+        $typeKeyToIds = [];
         foreach ($unitTypes as $type) {
-            $typeNameToId[strtolower($type['name'])] = $type['id'];
-            if (!empty($type['slug'])) {
-                $typeNameToId[strtolower($type['slug'])] = $type['id'];
+            $id = isset($type['id']) ? (int) $type['id'] : 0;
+            if ($id <= 0) {
+                continue;
+            }
+
+            $name = isset($type['name']) ? trim((string) $type['name']) : '';
+            $slug = isset($type['slug']) ? trim((string) $type['slug']) : '';
+
+            $keys = [];
+            if ($name !== '') {
+                $keys[] = strtolower($name);
+                $keys[] = $slugify($name);
+            }
+            if ($slug !== '') {
+                $keys[] = strtolower($slug);
+                $keys[] = $slugify($slug);
+            }
+
+            $keys = array_values(array_unique(array_filter($keys, function ($k) {
+                return $k !== '';
+            })));
+
+            foreach ($keys as $k) {
+                if (!isset($typeKeyToIds[$k])) {
+                    $typeKeyToIds[$k] = [];
+                }
+                if (!in_array($id, $typeKeyToIds[$k], true)) {
+                    $typeKeyToIds[$k][] = $id;
+                }
             }
         }
 
@@ -513,12 +564,20 @@ class UnitController extends CI_Controller
             $size_key = $unit['dcWidth'] . 'x' . $unit['dcLength'];
 
             // Determine unit type_id from sTypeName
-            $type_id = null;
+            $type_ids = [];
             if (!empty($unit['sTypeName'])) {
                 $typeName = strtolower(trim($unit['sTypeName']));
-                if (isset($typeNameToId[$typeName])) {
-                    $type_id = $typeNameToId[$typeName];
+                $typeSlug = $slugify($typeName);
+
+                if (isset($typeKeyToIds[$typeName]) && is_array($typeKeyToIds[$typeName])) {
+                    $type_ids = array_merge($type_ids, $typeKeyToIds[$typeName]);
                 }
+
+                if ($typeSlug !== '' && isset($typeKeyToIds[$typeSlug]) && is_array($typeKeyToIds[$typeSlug])) {
+                    $type_ids = array_merge($type_ids, $typeKeyToIds[$typeSlug]);
+                }
+
+                $type_ids = array_values(array_unique(array_map('intval', $type_ids)));
             }
 
             // Check if this unit matches any block rule
@@ -526,7 +585,7 @@ class UnitController extends CI_Controller
             foreach ($blockRules as $rule) {
                 $locationMatch = ($rule['location_id'] === null || $rule['location_id'] == $location_id);
                 $sizeMatch = ($rule['size_key'] === null || $rule['size_key'] === $size_key);
-                $typeMatch = ($rule['type_id'] === null || ($type_id !== null && $rule['type_id'] == $type_id));
+                $typeMatch = ($rule['type_id'] === null || (!empty($type_ids) && in_array((int) $rule['type_id'], $type_ids, true)));
 
                 if ($locationMatch && $sizeMatch && $typeMatch) {
                     $isBlocked = true;

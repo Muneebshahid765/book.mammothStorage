@@ -197,7 +197,7 @@
             <p><strong>Unit Number:</strong> <span id="unitNumber">-</span></p>
             <p><strong>Unit Size:</strong> <span id="unitSize">-</span></p>
              <p><strong>Floor:</strong> <span id="floorDisplay">-</span></p>
-            <p><strong>Monthly Rate:</strong> $<span id="monthlyRate">-</span>/mo</p>
+            <p><strong>Total Amount Paid:</strong> $<span id="totalAmount">-</span></p>
             <p><strong>Start Date:</strong> <span id="startDate">-</span></p>
             <p><strong>Building:</strong> <span id="building">-</span></p>
            
@@ -243,7 +243,22 @@
                 document.getElementById('locationName').textContent = data.locationName || '-';
                 document.getElementById('unitNumber').textContent = data.unitNumber || '-';
                 document.getElementById('unitSize').textContent = data.unitSize || '-';
-                document.getElementById('monthlyRate').textContent = data.monthlyRate || '-';
+
+                // Prefer explicit totalAmount field if present; fall back to monthly
+                // rate for older bookings that may not have totalAmount stored.
+                var totalEl = document.getElementById('totalAmount');
+                if (totalEl) {
+                    var rawTotal = (data.totalAmount !== undefined && data.totalAmount !== null && data.totalAmount !== '')
+                        ? data.totalAmount
+                        : data.monthlyRate;
+
+                    var parsed = parseFloat(rawTotal);
+                    if (!isNaN(parsed)) {
+                        totalEl.textContent = parsed.toFixed(2);
+                    } else {
+                        totalEl.textContent = '-';
+                    }
+                }
                 document.getElementById('startDate').textContent = formatDateToDDMMYYYY(data.startDate || '');
 
                 // Show block/building name from unitDesc if available

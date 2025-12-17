@@ -13,7 +13,7 @@ class LocationConfigController extends CI_Controller
     /**
      * Get lead time configuration for a specific location
      * Accepts: location_code (e.g., L001)
-     * Returns: JSON with lead_time_days
+     * Returns: JSON with lead_time_days and unit_type_max_days
      */
     public function lead_time()
     {
@@ -27,7 +27,7 @@ class LocationConfigController extends CI_Controller
                 ->set_output(json_encode([
                     'success' => false,
                     'message' => 'location_code parameter is required',
-                    'lead_time_days' => 1 // Default fallback
+                    'lead_time_days' => 1
                 ]));
             return;
         }
@@ -46,17 +46,19 @@ class LocationConfigController extends CI_Controller
                 ->set_output(json_encode([
                     'success' => false,
                     'message' => 'Location not found',
-                    'lead_time_days' => 1 // Default fallback
+                    'lead_time_days' => 1
                 ]));
             return;
         }
 
         $location_id = $location['id'];
 
-        // 1) Try to get the ACTIVE lead time option (matches SPECIAL admin behaviour)
+        // 1) Try to get the ACTIVE lead time option for location-wide (unit_type_id IS NULL)
+        // This is the MINIMUM lead time (how soon a customer can book)
         $this->db->select('lead_time_days');
         $this->db->from('tbl_location_lead_times');
         $this->db->where('location_id', $location_id);
+        $this->db->where('unit_type_id IS NULL', null, false);
         $this->db->where('is_active', 1);
         $query = $this->db->get();
         $lead_time = $query->row_array();
@@ -66,11 +68,12 @@ class LocationConfigController extends CI_Controller
             $lead_time_days = (int)$lead_time['lead_time_days'];
         }
 
-        // 2) If no active option, fall back to the smallest configured value
+        // 2) If no active option, fall back to the smallest configured value (location-wide)
         if ($lead_time_days === null) {
             $this->db->select_min('lead_time_days', 'min_days');
             $this->db->from('tbl_location_lead_times');
             $this->db->where('location_id', $location_id);
+            $this->db->where('unit_type_id IS NULL', null, false);
             $query = $this->db->get();
             $min_row = $query->row_array();
 
@@ -82,11 +85,30 @@ class LocationConfigController extends CI_Controller
             }
         }
 
+        // 3) Get unit-type-specific MAX ADVANCE BOOKING days (how far in advance)
+        // These are stored in tbl_location_lead_times with unit_type_id set
+        // The lead_time_days column here represents MAX days, not minimum
+        $unit_type_max_days = [];
+        $this->db->select('llt.lead_time_days, ut.slug as unit_type_slug');
+        $this->db->from('tbl_location_lead_times llt');
+        $this->db->join('tbl_unit_types ut', 'llt.unit_type_id = ut.id', 'inner');
+        $this->db->where('llt.location_id', $location_id);
+        $this->db->where('llt.unit_type_id IS NOT NULL', null, false);
+        $this->db->where('llt.is_active', 1);
+        $query = $this->db->get();
+        $type_rows = $query->result_array();
+
+        foreach ($type_rows as $row) {
+            // These values represent MAX advance booking days (how far)
+            $unit_type_max_days[$row['unit_type_slug']] = (int)$row['lead_time_days'];
+        }
+
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode([
                 'success' => true,
                 'lead_time_days' => $lead_time_days,
+                'unit_type_max_days' => $unit_type_max_days,
                 'location_code' => $location_code
             ]));
     }
