@@ -426,21 +426,40 @@ function findMatchingSpecials(unit, locationCode) {
     if (!Array.isArray(specials) || specials.length === 0) return [];
 
     const sizeKey = buildSizeKey(unit.dcWidth, unit.dcLength);
+    const unitTypeKeys = getUnitTypeKeys(unit);
 
     return specials.filter(special => {
+        let sizeMatched = false;
+
         // Prefer table-based size mappings when available
         if (Array.isArray(special.size_keys) && special.size_keys.length > 0) {
             const normalizedSpecialKeys = special.size_keys
                 .map(function (k) { return normalizeSizeKeyString(k); })
                 .filter(function (k) { return k; });
-            return normalizedSpecialKeys.indexOf(sizeKey) !== -1;
+            sizeMatched = normalizedSpecialKeys.indexOf(sizeKey) !== -1;
+        } else {
+            // Fallback to legacy dcWidth/dcLength matching
+            if (special.dcWidth == null || special.dcLength == null) {
+                sizeMatched = false;
+            } else {
+                const wMatch = Math.abs(parseFloat(special.dcWidth) - parseFloat(unit.dcWidth)) < 0.01;
+                const lMatch = Math.abs(parseFloat(special.dcLength) - parseFloat(unit.dcLength)) < 0.01;
+                sizeMatched = wMatch && lMatch;
+            }
         }
 
-        // Fallback to legacy dcWidth/dcLength matching
-        if (special.dcWidth == null || special.dcLength == null) return false;
-        const wMatch = Math.abs(parseFloat(special.dcWidth) - parseFloat(unit.dcWidth)) < 0.01;
-        const lMatch = Math.abs(parseFloat(special.dcLength) - parseFloat(unit.dcLength)) < 0.01;
-        return wMatch && lMatch;
+        if (!sizeMatched) return false;
+
+        const specialTypeKeys = getSpecialTypeKeys(special);
+        if (!specialTypeKeys || specialTypeKeys.length === 0) return true;
+
+        for (let i = 0; i < unitTypeKeys.length; i++) {
+            if (specialTypeKeys.indexOf(unitTypeKeys[i]) !== -1) {
+                return true;
+            }
+        }
+
+        return false;
     });
 }
 
@@ -579,6 +598,67 @@ function buildSizeKey(width, length) {
     const l = formatSizeDimension(length);
     if (!l) return '';
     return `${w}x${l}`;
+}
+
+function slugifyText(value) {
+    if (!value) return '';
+    return String(value)
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+function getUnitTypeKeys(unit) {
+    const keys = [];
+    if (!unit || !unit.sTypeName) {
+        return keys;
+    }
+
+    const base = String(unit.sTypeName).trim().toLowerCase();
+    if (base && keys.indexOf(base) === -1) {
+        keys.push(base);
+    }
+
+    const slug = slugifyText(base);
+    if (slug && keys.indexOf(slug) === -1) {
+        keys.push(slug);
+    }
+
+    return keys;
+}
+
+function getSpecialTypeKeys(special) {
+    const keys = [];
+    if (!special || !Array.isArray(special.types)) {
+        return keys;
+    }
+
+    special.types.forEach(function(type) {
+        if (!type) return;
+        const name = type.name ? String(type.name).trim().toLowerCase() : '';
+        const slug = type.slug ? String(type.slug).trim().toLowerCase() : '';
+
+        if (name && keys.indexOf(name) === -1) {
+            keys.push(name);
+        }
+
+        const nameSlug = slugifyText(name);
+        if (nameSlug && keys.indexOf(nameSlug) === -1) {
+            keys.push(nameSlug);
+        }
+
+        if (slug && keys.indexOf(slug) === -1) {
+            keys.push(slug);
+        }
+
+        const slugCanonical = slugifyText(slug);
+        if (slugCanonical && keys.indexOf(slugCanonical) === -1) {
+            keys.push(slugCanonical);
+        }
+    });
+
+    return keys;
 }
 
 function fetchDescription(sizeKey) {

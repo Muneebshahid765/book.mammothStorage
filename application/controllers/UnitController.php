@@ -13,7 +13,7 @@ class UnitController extends CI_Controller
     public function fetchInsuranceCoverage($locationCode)
     {
 
-        // ðŸ”¥ Call insurance coverage API
+        // 🔥 Call insurance coverage API
         $insuranceCurl = curl_init();
         curl_setopt_array($insuranceCurl, array(
             CURLOPT_URL => 'https://checkout.mammothstorage.com.au/api/v1/insurance_coverage/getAll',
@@ -204,13 +204,19 @@ class UnitController extends CI_Controller
         }
 
         // Extract units information from the SOAP response
-        // Filter: bRentable="true" AND bRented="false" to only show available units
-        $result = $xml->xpath('//diffgr:diffgram/NewDataSet/Table[bRentable="true" and bRented="false"]');
+        //$result = $xml->xpath('//diffgr:diffgram/NewDataSet/Table');
+        $result = $xml->xpath('//diffgr:diffgram/NewDataSet/Table[bRentable="true"]');
         $units = [];
 
         // Loop through the units and extract relevant information
         if (!empty($result)) {
             foreach ($result as $unit) {
+                // Exclude units already rented to prevent downstream booking failures
+                $bRentedValue = strtolower((string) $unit->bRented);
+                if (in_array($bRentedValue, ['true', '1'], true)) {
+                    continue;
+                }
+
                 $units[] = [
                     'UnitID' => (string) $unit->UnitID,
                     'sTypeName' => (string) $unit->sTypeName,

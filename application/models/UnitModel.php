@@ -89,6 +89,43 @@ class UnitModel extends CI_Model
             unset($special);
         }
 
+        if (!empty($specialIds)) {
+            $this->db->select('tust.special_id, t.id as type_id, t.name, t.slug');
+            $this->db->from('tbl_unit_specials_types tust');
+            $this->db->join('tbl_unit_types t', 'tust.type_id = t.id');
+            $this->db->where_in('tust.special_id', $specialIds);
+            $typesQuery = $this->db->get();
+
+            $typesMap = [];
+            if ($typesQuery !== false && $typesQuery->num_rows() > 0) {
+                foreach ($typesQuery->result_array() as $row) {
+                    $sid = (int) $row['special_id'];
+                    if (!isset($typesMap[$sid])) {
+                        $typesMap[$sid] = [];
+                    }
+                    $typesMap[$sid][] = [
+                        'id' => (int) $row['type_id'],
+                        'name' => $row['name'],
+                        'slug' => $row['slug']
+                    ];
+                }
+            }
+
+            foreach ($specials as &$special) {
+                $id = isset($special['id']) ? $special['id'] : null;
+                $types = ($id !== null && isset($typesMap[$id])) ? $typesMap[$id] : [];
+                $special['types'] = $types;
+                $typeIds = [];
+                foreach ($types as $t) {
+                    if (isset($t['id'])) {
+                        $typeIds[] = (int) $t['id'];
+                    }
+                }
+                $special['type_ids'] = $typeIds;
+            }
+            unset($special);
+        }
+
         return $specials;
     }
 

@@ -438,6 +438,26 @@
         }
     }
 
+    async function saveTenantData(formData) {
+        try {
+            const response = await $.ajax({
+                url: 'https://checkout.mammothstorage.com.au/api/v1/tenant/save',
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(formData)
+            });
+
+            if (response.success && response.data && response.data.token) {
+                return response.data;
+            }
+
+            throw new Error(response.message || 'Failed to save tenant data.');
+        } catch (error) {
+            console.error('Unable to save tenant data:', error);
+            throw error;
+        }
+    }
+
     async function processTenantMoveIn(formData) {
         try {
             const response = await $.ajax({
@@ -455,6 +475,41 @@
         } catch (error) {
             console.error("Unable to process move-in:", error);
             throw error;
+        }
+    }
+
+    async function logLegacyOrder(orderData) {
+        try {
+            const rawResponse = await $.ajax({
+                url: 'https://checkout.mammothstorage.com.au/api/v1/tenant/order-from-book',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(orderData),
+                dataType: 'text'
+            });
+
+            let responseText = typeof rawResponse === 'string' ? rawResponse : String(rawResponse || '');
+            const jsonStart = responseText.indexOf('{');
+            if (jsonStart > 0) {
+                responseText = responseText.substring(jsonStart);
+            }
+
+            let response;
+            try {
+                response = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse order-from-book JSON response:', responseText);
+                throw parseError;
+            }
+
+            if (response && response.success) {
+                return response;
+            }
+
+            return { success: false, message: (response && response.message) ? response.message : 'Order logging failed.' };
+        } catch (error) {
+            console.error('logLegacyOrder error:', error);
+            return { success: false, error: error.message };
         }
     }
 
@@ -688,7 +743,7 @@
 
         const signatureDataUrl = insuranceTerms.signature || '';
 
-        const altFullName = `${(additionalDetails.altFirstName || '').trim()} ${(additionalDetails.altLastName || '').trim()} `.trim();
+        const altFullName = `${(additionalDetails.altFirstName || '').trim()} ${(additionalDetails.altLastName || '').trim()}`.trim();
 
         // Determine base monthly storage fee for the agreement (non-discounted when available)
         const baseMonthlyPrice = (function () {
@@ -726,10 +781,17 @@
             }
         }
 
-        // Extract only block name from unitDesc (e.g., 'Block 2' or 'E Block')
-        // unitDesc might be like 'Block 2' or 'E Block', we want just that, not floor/size
+        // Extract only block name from unitDesc or building (e.g., 'Block 31')
+        // Input might be like 'Block 31, 1.7m × 3m, Ground Floor' - we want just 'Block 31'
         let buildingName = bookingData.unit?.unitDesc || bookingData.unit?.building || '';
-        // If buildingName contains comma or extra info, take only the first part
+        // Remove size patterns like '1.7m × 3m' or '2m x 2m' and floor info (× is Unicode \u00D7)
+        buildingName = buildingName
+            .replace(/,?\s*\d+\.?\d*\s*m?\s*[×xX\u00D7]\s*\d+\.?\d*\s*m?/giu, '')
+            .replace(/,?\s*(Ground\s*Floor|Level\s*\d+|Floor\s*\d+|Drive\s*Up\s*Access)/giu, '')
+            .replace(/,+/g, ',')
+            .replace(/^,|,$/g, '')
+            .trim();
+        // Final fallback: if still has comma, take first part only
         if (buildingName.includes(',')) {
             buildingName = buildingName.split(',')[0].trim();
         }
@@ -779,6 +841,13 @@
         const cvv = $('#cvv').val() || '';
         const expYear = $('#expYear').val() || '';
         const expMonth = $('#expMonth').val() || '';
+
+        let insurance = {
+            option: insuranceTerms.insurance || 'noInsurance',
+            coverage: insuranceTerms.coverage || '0',
+            coverage_id: insuranceTerms.coverage_id || '0',
+            premium: insuranceTerms.premium || '0'
+        };
 
         const sanitizedCard = cardNumber.replace(/\s+/g, '');
         const cardLastFour = sanitizedCard ? sanitizedCard.slice(-4) : '';
@@ -839,16 +908,6 @@
         };
     }
 
-    async function logLegacyOrder(orderData) {
-        try {
-            console.log('Logging legacy order data:', orderData);
-            return { success: true };
-        } catch (error) {
-            console.error('logLegacyOrder error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
     async function processFinalSubmission() {
         const $submitBtn = $('#submitBtn');
         $submitBtn.prop('disabled', true).text('Processing...');
@@ -884,14 +943,33 @@
             const moveInResult = await processTenantMoveIn(moveInData);
             // console.log('Move-in result:', moveInResult);
 
-            // Extract tenant_unit_informations_id from tenant creation response
-            const tenant_unit_informations_id = tenant.tenant_unit_informations_id || '';
+            let ledgerId = '';
+            if (moveInResult && moveInResult.move_in && moveInResult.move_in.LedgerID) {
+                ledgerId = moveInResult.move_in.LedgerID;
+            } else if (moveInResult && moveInResult.data && moveInResult.data.move_in && moveInResult.data.move_in.LedgerID) {
+                ledgerId = moveInResult.data.move_in.LedgerID;
+            }
+
+            const tenantSaveData = {
+                tenantId: tenant.TenantID,
+                locationCode: bookingData.locationCode,
+                ledgerId: ledgerId,
+                scheduleType: 'book'
+            };
+
+            const savedTenant = await saveTenantData(tenantSaveData);
+
+            const legacyMeta = {
+                tenant_unit_informations_id: savedTenant.tenant_unit_informations_id || '',
+                token: savedTenant.token || ''
+            };
+
+            if (legacyMeta.tenant_unit_informations_id) {
+                tenant.tenant_unit_informations_id = legacyMeta.tenant_unit_informations_id;
+            }
 
             // console.log('=== STEP 3b: LOGGING LEGACY ORDER ===');
-            const legacyOrderData = collectLegacyOrderData(tenant, moveInResult, {
-                tenant_unit_informations_id: tenant_unit_informations_id,
-                token: ''
-            });
+            const legacyOrderData = collectLegacyOrderData(tenant, moveInResult, legacyMeta);
             // console.log('Legacy order data:', legacyOrderData);
             await logLegacyOrder(legacyOrderData);
 
@@ -903,8 +981,8 @@
                 welcomeEmailData.access_code = tenant.sAccessCode;
             }
             // Add tenant_unit_informations_id for agreement number (preferred)
-            if (tenant_unit_informations_id) {
-                welcomeEmailData.tenant_unit_informations_id = tenant_unit_informations_id;
+            if (tenant.tenant_unit_informations_id) {
+                welcomeEmailData.tenant_unit_informations_id = tenant.tenant_unit_informations_id;
             }
             const emailResult = await sendWelcomeEmail(welcomeEmailData);
 
